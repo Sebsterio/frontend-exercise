@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
-import axios from "axios";
 
+import { getData, convertPrice } from "./helpers";
 import { Tooltip } from "./Tooltip";
 
 interface Data {
@@ -24,18 +24,10 @@ interface Data {
 
 const GET_DATA_INTERVAL = 5 * 1000;
 
-const getData = () =>
-  axios
-    .get("https://dev.ebitlabs.io/api/v1/fx/ETHUSD/ohlc")
-    .then((res) => res.data)
-    .catch(() => null);
-
-const convertPrice = (price: string) => price.split(".");
-
 function App() {
   const [data, setData] = useState({} as Data);
   const [price, setPrice] = useState(["", ""]);
-  const [error, setError] = useState(true);
+  const [error, setError] = useState(false);
   const [tooltipActive, setTooltipActive] = useState(false);
 
   const startTimeString = useMemo(() => {
@@ -44,8 +36,6 @@ function App() {
     const ms = seconds * 1000 + Math.round(microseconds / 1000);
     return new Date(ms).toISOString();
   }, [data.startTime]);
-
-  console.log(startTimeString);
 
   const updateData = async () => {
     const newData = await getData();
@@ -61,7 +51,7 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Keep converted price in the state to avoid running .splice() twice
+  // Format price on data update
   useEffect(() => {
     if (!data || !data.close) return;
     setPrice(convertPrice(data.close));
@@ -78,28 +68,36 @@ function App() {
           </div>
         </div>
         <div className="pb-12 mt-10 bg-white sm:pb-16">
-          <div className="relative">
-            <div className="absolute inset-0 h-1/2 bg-gray-50" />
-            <div className="relative px-4 mx-auto max-w-7xl sm:px-6 lg:px-8 text-center">
-              <dl className="inline-block mx-auto bg-white rounded-lg shadow-lg">
-                <div
-                  className={`no-hover-on-children flex flex-col p-6 text-center border-t border-gray-100 ${
-                    error ? "text-red" : "text-gray-500"
-                  }`}
-                  onMouseOver={() => setTooltipActive(true)}
-                  onMouseOut={() => setTooltipActive(false)}
-                >
-                  <dt className="order-2 mt-2 text-lg font-medium leading-6">
-                    {data?.pair}
-                  </dt>
-                  <dd className="order-1 text-5xl font-extrabold">
-                    ${price[0] || "0000"}
-                    <span className="text-2xl">.{price[1] || "00"}</span>
-                  </dd>
-                </div>
-              </dl>
+          {Object.keys(data).length ? (
+            <div className="relative">
+              <div className="absolute inset-0 h-1/2 bg-gray-50" />
+              <div className="relative px-4 mx-auto max-w-7xl sm:px-6 lg:px-8 text-center">
+                <dl className="inline-block mx-auto bg-white rounded-lg shadow-lg">
+                  <div
+                    className={`no-hover-on-children flex flex-col p-6 text-center text-gray-500 ${
+                      error
+                        ? "border-4 border-red-500"
+                        : "border-t border-gray-100"
+                    }`}
+                    onMouseOver={() => setTooltipActive(true)}
+                    onMouseOut={() => setTooltipActive(false)}
+                  >
+                    <dt className="order-2 mt-2 text-lg font-medium leading-6">
+                      {data?.pair}
+                    </dt>
+                    <dd className="order-1 text-5xl font-extrabold">
+                      ${price[0] || "0000"}
+                      <span className="text-2xl">.{price[1] || "00"}</span>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="absolute inset-0 flex justify-center items-center">
+              <h2>Loading...</h2>
+            </div>
+          )}
         </div>
       </div>
 
