@@ -6,3 +6,10 @@
 .no-hover-on-children * {
   pointer-events: none;
 }
+
+.price-highlight .positive {
+  color: rgb(0, 162, 0);
+}
+.price-highlight .negative {
+  color: red;
+}

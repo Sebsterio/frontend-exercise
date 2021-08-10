@@ -1,32 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
 
-import { getData, convertPrice } from "./helpers";
+import { getData, convertData } from "./helpers";
 import { Tooltip } from "./Tooltip";
-
-interface Data {
-  close: string;
-  count: number;
-  endTime: {
-    microseconds: number;
-    seconds: number;
-  };
-  high: string;
-  low: string;
-  open: string;
-  pair: string;
-  startTime: {
-    microseconds: number;
-    seconds: number;
-  };
-  volume: string;
-  vwap: string;
-}
+import { Data } from "./types";
 
 const GET_DATA_INTERVAL = 5 * 1000;
 
 function App() {
   const [data, setData] = useState({} as Data);
-  const [price, setPrice] = useState(["", ""]);
   const [error, setError] = useState(false);
   const [tooltipActive, setTooltipActive] = useState(false);
 
@@ -35,12 +16,12 @@ function App() {
     const { seconds, microseconds } = data.startTime;
     const ms = seconds * 1000 + Math.round(microseconds / 1000);
     return new Date(ms).toISOString();
-  }, [data.startTime]);
+  }, [data]);
 
   const updateData = async () => {
     const newData = await getData();
     if (!newData) return setError(true);
-    setData(newData);
+    setData((oldData) => convertData(oldData, newData));
     if (error) setError(false);
   };
 
@@ -50,12 +31,6 @@ function App() {
     const interval = setInterval(updateData, GET_DATA_INTERVAL);
     return () => clearInterval(interval);
   }, []);
-
-  // Format price on data update
-  useEffect(() => {
-    if (!data || !data.close) return;
-    setPrice(convertPrice(data.close));
-  }, [data]);
 
   return (
     <>
@@ -85,9 +60,19 @@ function App() {
                     <dt className="order-2 mt-2 text-lg font-medium leading-6">
                       {data?.pair}
                     </dt>
-                    <dd className="order-1 text-5xl font-extrabold">
-                      ${price[0] || "0000"}
-                      <span className="text-2xl">.{price[1] || "00"}</span>
+                    <dd className="order-1 font-extrabold">
+                      <span
+                        className="text-5xl price-highlight"
+                        dangerouslySetInnerHTML={{
+                          __html: "$" + (data.price[0] || "0000"),
+                        }}
+                      />
+                      <span
+                        className="text-2xl price-highlight"
+                        dangerouslySetInnerHTML={{
+                          __html: "." + (data.price[1] || "00"),
+                        }}
+                      />
                     </dd>
                   </div>
                 </dl>
