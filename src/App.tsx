@@ -55,8 +55,8 @@ function App() {
       <div className="pb-12 mt-10 bg-white sm:pb-16">
         <div className="relative">
           <div className="absolute inset-0 h-1/2 bg-gray-50" />
-          <div className="relative px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <dl className="max-w-xxs mx-auto bg-white rounded-lg shadow-lg">
+          <div className="relative px-4 mx-auto max-w-7xl sm:px-6 lg:px-8 text-center">
+            <dl className="inline-block mx-auto bg-white rounded-lg shadow-lg">
               <div
                 className={`flex flex-col p-6 text-center border-t border-gray-100 ${
                   error ? "text-red" : "text-gray-500"
