@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Quick and dirty solution to React's problem with onMouseOut bubbling */
+.no-hover-on-children * {
+  pointer-events: none;
+}

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 
-// import { Tooltip } from "./Tooltip";
+import { Tooltip } from "./Tooltip";
 
 interface Data {
   close: string;
@@ -36,7 +36,16 @@ function App() {
   const [data, setData] = useState({} as Data);
   const [price, setPrice] = useState(["", ""]);
   const [error, setError] = useState(true);
-  // const [tooltipActive, setTooltipActive] = useState(false);
+  const [tooltipActive, setTooltipActive] = useState(false);
+
+  const startTimeString = useMemo(() => {
+    if (!data.startTime) return "";
+    const { seconds, microseconds } = data.startTime;
+    const ms = seconds * 1000 + Math.round(microseconds / 1000);
+    return new Date(ms).toISOString();
+  }, [data.startTime]);
+
+  console.log(startTimeString);
 
   const updateData = async () => {
     const newData = await getData();
@@ -60,8 +69,6 @@ function App() {
 
   return (
     <>
-      {/* {tooltipActive && data && <Tooltip content={String(data.startTime)} />} */}
-
       <div className="pt-12 bg-gray-50 sm:pt-16">
         <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
@@ -71,25 +78,23 @@ function App() {
           </div>
         </div>
         <div className="pb-12 mt-10 bg-white sm:pb-16">
-          <div
-            className="relative"
-            // onMouseEnter={() => setTooltipActive(true)}
-            // onMouseLeave={() => setTooltipActive(false)}
-          >
+          <div className="relative">
             <div className="absolute inset-0 h-1/2 bg-gray-50" />
             <div className="relative px-4 mx-auto max-w-7xl sm:px-6 lg:px-8 text-center">
               <dl className="inline-block mx-auto bg-white rounded-lg shadow-lg">
                 <div
-                  className={`flex flex-col p-6 text-center border-t border-gray-100 ${
+                  className={`no-hover-on-children flex flex-col p-6 text-center border-t border-gray-100 ${
                     error ? "text-red" : "text-gray-500"
                   }`}
+                  onMouseOver={() => setTooltipActive(true)}
+                  onMouseOut={() => setTooltipActive(false)}
                 >
                   <dt className="order-2 mt-2 text-lg font-medium leading-6">
                     {data?.pair}
                   </dt>
                   <dd className="order-1 text-5xl font-extrabold">
-                    ${price[0] ?? "0000"}
-                    <span className="text-2xl">.{price[1] ?? "00"}</span>
+                    ${price[0] || "0000"}
+                    <span className="text-2xl">.{price[1] || "00"}</span>
                   </dd>
                 </div>
               </dl>
@@ -97,6 +102,8 @@ function App() {
           </div>
         </div>
       </div>
+
+      {tooltipActive && data && <Tooltip content={startTimeString} />}
     </>
   );
 }
