@@ -5,6 +5,7 @@ import { Map, DigitObject } from "./types";
 const changeClassMap: Map = {
   true: "price-highlight__positive",
   false: "price-highlight__negative",
+  null: "",
 } as const;
 
 export function Digit({ value, isInteger, change }: DigitObject) {
@@ -12,7 +13,7 @@ export function Digit({ value, isInteger, change }: DigitObject) {
     <span
       className={[
         isInteger ? "text-5xl" : "text-2xl",
-        changeClassMap[String(change)] ?? "",
+        changeClassMap[String(change)],
       ].join(" ")}
     >
       {value}

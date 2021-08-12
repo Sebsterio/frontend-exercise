@@ -1,43 +1,10 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState } from "react";
 
-import { getData } from "./price-service";
-import { ensurePadding, getPriceDiffs } from "./helpers";
 import { Tooltip } from "./Tooltip";
-import { Digit } from "./Digit";
-import { Data, Price } from "./types";
-
-const GET_DATA_INTERVAL = 5 * 1000;
+import { PriceCard } from "./PriceCard";
 
 function App() {
-  const [data, setData] = useState({} as Data);
-  const [price, setPrice] = useState([] as Price);
-  const [error, setError] = useState(false);
-  const [tooltipActive, setTooltipActive] = useState(false);
-
-  const startTimeString = useMemo(() => {
-    if (!data.startTime) return "";
-    const { seconds, microseconds } = data.startTime;
-    const ms = seconds * 1000 + Math.round(microseconds / 1000);
-    return new Date(ms).toISOString();
-  }, [data]);
-
-  const updateData = async () => {
-    const newData = await getData();
-    if (!newData) return setError(true);
-    newData.close = ensurePadding(newData.close);
-    setData((oldData) => {
-      setPrice(getPriceDiffs(oldData, newData));
-      return newData;
-    });
-    if (error) setError(false);
-  };
-
-  // Refresh data on interval
-  useEffect(() => {
-    updateData();
-    const interval = setInterval(updateData, GET_DATA_INTERVAL);
-    return () => clearInterval(interval);
-  }, []);
+  const [tooltipContent, setTooltipContent] = useState("");
 
   return (
     <>
@@ -50,42 +17,17 @@ function App() {
           </div>
         </div>
         <div className="pb-12 mt-10 bg-white sm:pb-16">
-          {Object.keys(data).length ? (
-            <div className="relative">
-              <div className="absolute inset-0 h-1/2 bg-gray-50" />
-              <div className="relative px-4 mx-auto max-w-7xl sm:px-6 lg:px-8 text-center">
-                <dl className="inline-block mx-auto bg-white rounded-lg shadow-lg">
-                  <div
-                    className={`no-hover-on-children flex flex-col p-6 text-center text-gray-500 ${
-                      error
-                        ? "border-4 border-red-500"
-                        : "border-t border-gray-100"
-                    }`}
-                    onMouseOver={() => setTooltipActive(true)}
-                    onMouseOut={() => setTooltipActive(false)}
-                  >
-                    <dt className="order-2 mt-2 text-lg font-medium leading-6">
-                      {data?.pair}
-                    </dt>
-                    <dd className="order-1 font-extrabold price-highlight">
-                      <span className="text-5xl">$</span>
-                      {price.map((digit, i) => (
-                        <Digit key={i} {...digit} />
-                      ))}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
+          <div className="relative">
+            <div className="absolute inset-0 h-1/2 bg-gray-50" />
+            <div className="flex justify-center flex-wrap">
+              <PriceCard currency="USD" {...{ setTooltipContent }} />
+              <PriceCard currency="GBP" {...{ setTooltipContent }} />
             </div>
-          ) : (
-            <div className="absolute inset-0 flex justify-center items-center">
-              <h2>Loading...</h2>
-            </div>
-          )}
+          </div>
         </div>
       </div>
 
-      {tooltipActive && data && <Tooltip content={startTimeString} />}
+      {tooltipContent && <Tooltip content={tooltipContent} />}
     </>
   );
 }

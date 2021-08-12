@@ -1,10 +1,6 @@
-// Utils
-
 export interface Map {
   [key: string]: string | undefined;
 }
-
-// State
 
 export interface Data {
   close: string;
@@ -32,3 +28,5 @@ export interface DigitObject {
 }
 
 export type Price = DigitObject[];
+
+export type Currency = "USD" | "GBP";
