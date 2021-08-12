@@ -1,61 +1,91 @@
-import axios from "axios";
+import { Data, DigitObject, Price } from "./types";
 
-import { Data } from "./types";
+export const ensurePadding = (string: string) =>
+  string.replace(/[.](\d)$/, ".$1" + "0").replace(/^(\d+)$/, "$1" + ".00");
 
-export const getData = () =>
-  axios
-    .get("https://dev.ebitlabs.io/api/v1/fx/ETHUSD/ohlc")
-    .then((res) => res.data)
-    .catch(() => null);
+export const getPriceDiffs = (
+  { close: oldPriceString }: Data,
+  { close: newPriceString }: Data,
+): Price => {
+  const newPriceArray = newPriceString.split("");
 
-//
-// Messy but it got late. Happy to refactor tomorrow. -Seb
-//
-const makeDataObj = (
-  data: Data,
-  price: string | [string, string] = data.close,
-) => ({
-  ...data,
-  price: Array.isArray(price) ? price : (price.split(".") as [string, string]),
-});
+  // Numerical difference
+  const delta = oldPriceString
+    ? parseFloat(newPriceString) - parseFloat(oldPriceString)
+    : 0;
 
-export const convertData = (oldData: Data, newData: Data) => {
-  if (!oldData.close) return makeDataObj(newData);
+  // Has string length changed
+  const lengthChanged = !!delta
+    ? oldPriceString.length !== newPriceArray.length
+    : false;
 
-  const { close: oldPrice } = oldData;
-  const { close: newPrice } = newData;
-  const oldPriceNum = parseFloat(oldPrice);
-  const newPriceNum = parseFloat(newPrice);
-  const diff = newPriceNum - oldPriceNum;
+  // Index of the first digit that changed
+  // prettier-ignore
+  const firstDiffIndex = lengthChanged ? 0 // if length changed, all digits changed
+    : !delta ? newPriceString.length // if no difference, no digits changed
+    : (() => {
+        const oldPriceArray = oldPriceString.split("");
+        return newPriceArray.findIndex(
+          (char: string, i: number) => char !== oldPriceArray[i],
+        );
+      })();
 
-  if (!diff) return makeDataObj(newData);
+  // Convert priceString into an array of digit objects
+  const priceIncreased = !delta ? null : delta > 0;
+  const dotIndex = newPriceArray.findIndex((char) => char === ".");
+  const digitsArray = newPriceArray.map(
+    (char: string, i: number): DigitObject => ({
+      value: char,
+      isInteger: i < dotIndex,
+      change: i < firstDiffIndex ? null : priceIncreased,
+    }),
+  );
 
-  const className = diff > 0 ? "positive" : "negative";
-
-  if (oldPrice.length !== newPrice.length) {
-    const result = newData.close
-      .split(".")
-      .map((string) => `<span class="${className}">${string}</span>`);
-
-    return makeDataObj(newData, result as [string, string]);
-  }
-
-  const oldPriceArray = oldPrice.split("");
-  const newPriceArray = newPrice.split("");
-  let foundDiffPoint = false;
-  const result = newPriceArray
-    .map((char, i) => {
-      if (char === ".") return char;
-
-      const oldChar = oldPriceArray[i];
-      if (foundDiffPoint || oldChar !== char) {
-        foundDiffPoint = true;
-        return `<span class="${className}">${char}</span>`;
-      }
-
-      return char;
-    })
-    .join("");
-
-  return makeDataObj(newData, result);
+  return digitsArray;
 };
+
+// Previous version; not entirely sure if the refactor is cleaner but I'm curious what you think
+
+// export const getPriceDiffs = (
+//   { close: oldPriceString }: Data,
+//   { close: newPriceString }: Data,
+// ): Price => {
+//   const newPriceArray = newPriceString.split("");
+
+//   let delta = 0; // Numerical change of price
+//   let lengthChanged = false; // String length
+//   let firstDiffIndex = 0; // Index of the first digit that changed
+
+//   if (oldPriceString) {
+//     const oldPriceNum = parseFloat(oldPriceString);
+//     const newPriceNum = parseFloat(newPriceString);
+//     delta = newPriceNum - oldPriceNum;
+//   }
+
+//   if (delta) {
+//     lengthChanged = oldPriceString.length !== newPriceString.length;
+//   }
+
+//   // Find first digit that changed
+//   if (!delta) {
+//     firstDiffIndex = newPriceString.length;
+//   } else if (!lengthChanged) {
+//     const oldPriceArray = oldPriceString.split("");
+//     firstDiffIndex = newPriceArray.findIndex(
+//       (char: string, i: number) => char !== oldPriceArray[i],
+//     );
+//   }
+
+//   // Convert priceString into an array of digit objects
+//   const priceIncreased = !delta ? null : delta > 0;
+//   const dotIndex = newPriceArray.findIndex((char) => char === ".");
+//   const digitsArray = newPriceArray.map(
+//     (char: string, i: number): DigitObject => ({
+//       value: char,
+//       isInteger: i < dotIndex,
+//       change: i < firstDiffIndex ? null : priceIncreased,
+//     }),
+//   );
+
+//   return digitsArray;
+// };

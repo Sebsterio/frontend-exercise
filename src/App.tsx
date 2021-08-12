@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useMemo } from "react";
 
-import { getData, convertData } from "./helpers";
+import { getData } from "./price-service";
+import { ensurePadding, getPriceDiffs } from "./helpers";
 import { Tooltip } from "./Tooltip";
-import { Data } from "./types";
+import { Digit } from "./Digit";
+import { Data, Price } from "./types";
 
 const GET_DATA_INTERVAL = 5 * 1000;
 
 function App() {
   const [data, setData] = useState({} as Data);
+  const [price, setPrice] = useState([] as Price);
   const [error, setError] = useState(false);
   const [tooltipActive, setTooltipActive] = useState(false);
 
@@ -21,7 +24,11 @@ function App() {
   const updateData = async () => {
     const newData = await getData();
     if (!newData) return setError(true);
-    setData((oldData) => convertData(oldData, newData));
+    newData.close = ensurePadding(newData.close);
+    setData((oldData) => {
+      setPrice(getPriceDiffs(oldData, newData));
+      return newData;
+    });
     if (error) setError(false);
   };
 
@@ -60,19 +67,11 @@ function App() {
                     <dt className="order-2 mt-2 text-lg font-medium leading-6">
                       {data?.pair}
                     </dt>
-                    <dd className="order-1 font-extrabold">
-                      <span
-                        className="text-5xl price-highlight"
-                        dangerouslySetInnerHTML={{
-                          __html: "$" + (data.price[0] || "0000"),
-                        }}
-                      />
-                      <span
-                        className="text-2xl price-highlight"
-                        dangerouslySetInnerHTML={{
-                          __html: "." + (data.price[1] || "00"),
-                        }}
-                      />
+                    <dd className="order-1 font-extrabold price-highlight">
+                      <span className="text-5xl">$</span>
+                      {price.map((digit, i) => (
+                        <Digit key={i} {...digit} />
+                      ))}
                     </dd>
                   </div>
                 </dl>

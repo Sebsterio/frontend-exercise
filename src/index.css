@@ -7,9 +7,9 @@
   pointer-events: none;
 }
 
-.price-highlight .positive {
-  color: rgb(0, 162, 0);
+.price-highlight .price-highlight__positive {
+  color: rgb(3, 190, 3);
 }
-.price-highlight .negative {
+.price-highlight .price-highlight__negative {
   color: red;
 }

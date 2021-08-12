@@ -1,3 +1,11 @@
+// Utils
+
+export interface Map {
+  [key: string]: string | undefined;
+}
+
+// State
+
 export interface Data {
   close: string;
   count: number;
@@ -15,7 +23,12 @@ export interface Data {
   };
   volume: string;
   vwap: string;
-
-  // Added during conversion
-  price: [string, string];
 }
+
+export interface DigitObject {
+  value: string;
+  isInteger: boolean; // digit is before the decimal point within the number
+  change: boolean /* increase, decrese */ | null /* no change */;
+}
+
+export type Price = DigitObject[];
