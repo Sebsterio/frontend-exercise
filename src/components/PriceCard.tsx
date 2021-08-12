@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 
-import { getData } from "./price-service";
-import { ensurePadding, getPriceDiffs } from "./helpers";
-import { Digit } from "./Digit";
-import { Data, Price } from "./types";
+import { Currency, Map, Data, Price } from "../types";
+import { ensurePadding, getPriceDiffs } from "../helpers";
+import { getData } from "../price-service";
 
-import { Currency, Map } from "./types";
+import { Digit } from ".";
 
 const GET_DATA_INTERVAL = 5 * 1000;
 

@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 
-import { Tooltip } from "./Tooltip";
-import { PriceCard } from "./PriceCard";
+import { Tooltip, PriceCard } from ".";
 
-function App() {
+export function App() {
   const [tooltipContent, setTooltipContent] = useState("");
 
   return (
@@ -31,5 +30,3 @@ function App() {
     </>
   );
 }
-
-export default App;

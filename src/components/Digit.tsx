@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Map, DigitObject } from "./types";
+import { Map, DigitObject } from "../types";
 
 const changeClassMap: Map = {
   true: "price-highlight__positive",
